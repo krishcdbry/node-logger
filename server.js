@@ -7,26 +7,33 @@ let fs = require('fs');
 let data = "Hey this is random log !!"
 let clientConencted = false;
 let connectedClient = null;
+let fileStream = "logger.txt";
 let _bsize = 256,
     _readBytes = 0,
     _file,
     _line = 0;
 
+    
 function readingLogger() {
-    let stats = fs.fstatSync(file, 'utf8'); 
-    console.log(stats.size, _readBytes);
-    if(stats.size < _readBytes+1) {
-        console.log('Reading');
-        setTimeout(readingLogger, 3000);
-    }
-    else {
-        fs.read(file, 
-            new Buffer(_bsize)
-            , 0
-            , _bsize
-            , _readBytes
-            , processReadData);
-    }
+    fs.watch(fileStream, (event, filename) => {
+        console.log(event);
+        if (event == 'change') {
+            let stats = fs.fstatSync(_file, 'utf8'); 
+            console.log(stats.size, _readBytes);
+            if(stats.size < _readBytes+1) {
+                console.log('Reading');
+                readingLogger();
+            }
+            else {
+                fs.read(_file, 
+                    new Buffer(_bsize)
+                    , 0
+                    , _bsize
+                    , _readBytes
+                    , processReadData);
+            }
+        }
+    });
 }
 
 function processReadData(err, bytecount, buff) {
@@ -41,8 +48,8 @@ function processReadData(err, bytecount, buff) {
 }
 
 function initiateReader () {
-    fs.open('logger.txt', 'r', (err, fd) => { 
-        file = fd; readingLogger(); 
+    fs.open(fileStream, 'r', (err, fd) => { 
+        _file = fd; readingLogger(); 
     });   
 }
 
