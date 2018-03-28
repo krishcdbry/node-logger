@@ -20,7 +20,7 @@ function writeFile() {
         if (err) throw err;
     
         // success case, the file was saved
-        console.log('Lyric saved!');
+        console.log("Saving..!");
 
         setTimeout(() => {
             writeFile()
@@ -34,8 +34,6 @@ function readingLogger() {
             _file = fd; 
             if (event == 'change') {
                 let stats = fs.fstatSync(_file, 'utf8'); 
-                console.log(stats.size, _readBytes);
-                console.log("Read bytes", _readBytes);
                 if(stats.size > _readBytes+1) {
                     fs.read(_file, 
                         new Buffer(_bsize)
@@ -57,12 +55,6 @@ function processReadData(err, bytecount, buff) {
 
     // Hmm continue now 
     _readBytes += bytecount;
-}
-
-function initiateReader () {
-    fs.open(fileStream, 'r', (err, fd) => { 
-        _file = fd; readingLogger(); 
-    });   
 }
 
 io.on( 'connection', function( client ) {
