@@ -13,26 +13,39 @@ let _bsize = 256,
     _file,
     _line = 0;
 
+
+function writeFile() {
+    fs.appendFile(fileStream, data + "\n", (err) => {  
+        // throws an error, you could also catch it here
+        if (err) throw err;
+    
+        // success case, the file was saved
+        console.log('Lyric saved!');
+
+        setTimeout(() => {
+            writeFile()
+        }, 3000);
+    });
+}
     
 function readingLogger() {
     fs.watch(fileStream, (event, filename) => {
-        console.log(event);
-        if (event == 'change') {
-            let stats = fs.fstatSync(_file, 'utf8'); 
-            console.log(stats.size, _readBytes);
-            if(stats.size < _readBytes+1) {
-                console.log('Reading');
-                readingLogger();
+        fs.open(fileStream, 'r', (err, fd) => { 
+            _file = fd; 
+            if (event == 'change') {
+                let stats = fs.fstatSync(_file, 'utf8'); 
+                console.log(stats.size, _readBytes);
+                console.log("Read bytes", _readBytes);
+                if(stats.size > _readBytes+1) {
+                    fs.read(_file, 
+                        new Buffer(_bsize)
+                        , 0
+                        , _bsize
+                        , _readBytes
+                        , processReadData);
+                }
             }
-            else {
-                fs.read(_file, 
-                    new Buffer(_bsize)
-                    , 0
-                    , _bsize
-                    , _readBytes
-                    , processReadData);
-            }
-        }
+        }); 
     });
 }
 
@@ -44,7 +57,6 @@ function processReadData(err, bytecount, buff) {
 
     // Hmm continue now 
     _readBytes += bytecount;
-    readingLogger();
 }
 
 function initiateReader () {
@@ -56,7 +68,7 @@ function initiateReader () {
 io.on( 'connection', function( client ) {
     clientConencted = true;
     connectedClient = client;
-    initiateReader();
+    readingLogger();
 
 	client.on('disconnect', function() {
         console.log("Disconnected");
@@ -67,4 +79,5 @@ io.on( 'connection', function( client ) {
 
 http.listen('9000', function () {
     console.log("Working dude !!");
+    //writeFile();
 });
