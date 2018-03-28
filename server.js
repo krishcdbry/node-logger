@@ -29,10 +29,11 @@ function writeFile() {
 }
     
 function readingLogger() {
-    fs.watch(fileStream, (event, filename) => {
-        fs.open(fileStream, 'r', (err, fd) => { 
-            _file = fd; 
+    fs.open(fileStream, 'r', (err, fd) => { 
+        console.log("Logged opened");
+        fs.watch(fileStream, (event, filename) => {
             if (event == 'change') {
+                _file = fd; 
                 let stats = fs.fstatSync(_file, 'utf8'); 
                 if(stats.size > _readBytes+1) {
                     fs.read(_file, 
@@ -71,5 +72,5 @@ io.on( 'connection', function( client ) {
 
 http.listen('9000', function () {
     console.log("Working dude !!");
-    //writeFile();
+    writeFile();
 });
